@@ -24,6 +24,16 @@ if [ -n "$1" ]; then
     printf "\nIt's Done!"
     exit
   fi
+
+  if [ "$1" = "--uninstall" ]; then
+    rm -rf /var/www/html/OCWeb_DATABASE /var/www/html/ocweb /var/www/html/oc*
+    cp /etc/sudoers.backup /etc/sudoers
+    read -p "Uninstall package dependecies[y/n]: " uninstall_packages
+    if [ "$uninstall_packages" = "y" ]; then
+      apt autoremove apache2 php php-sqlite3 sqlite3 uuid-runtime rsync sshpass php-ssh2 gcc make autoconf libc-dev pkg-config libssh2-1-dev -y
+    fi
+    exit
+  fi
 fi
 
 sed -i '/^#.*config-per-group/ s/^#//' /etc/ocserv/ocserv.conf
@@ -55,6 +65,9 @@ echo "INSERT INTO ADMINS VALUES (null, '$FULLNAME', '$USERNAME', '$PASSWORD', 'a
 printf "\n\nWeb Address: <YOUR_VPS_IP>/ocweb.\n"
 printf "\nIf you want reset administrator password just run:\n"
 echo "bash <(curl -s https://raw.githubusercontent.com/miladprg/ocweb/master/install.sh) \"--reset\""
+printf "\n\n"
+printf "\nIf you want uninstall panel run:\n"
+echo "bash <(curl -s https://raw.githubusercontent.com/miladprg/ocweb/master/install.sh) \"--uninstall\""
 printf "\n"
 cd ~
 service apache2 restart
