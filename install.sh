@@ -1,0 +1,69 @@
+#!/bin/bash
+apt update
+apt install apache2 php php-sqlite3 sqlite3 uuid-runtime zip unzip rsync sshpass php-ssh2 gcc make autoconf libc-dev pkg-config libssh2-1-dev -y
+
+cd /var/www/html
+touch index.php
+wget -O ocweb.zip https://raw.githubusercontent.com/miladprg/ocweb/master/ocweb.zip
+unzip ocweb.zip
+rm ocweb.zip
+mkdir -p OCWeb_DATABASE
+mkdir -p OCWeb_DATABASE/backup
+cd OCWeb_DATABASE
+wget -O schema.sql https://raw.githubusercontent.com/miladprg/ocweb/master/schema.sql
+wget -O manage.sh https://raw.githubusercontent.com/miladprg/ocweb/master/manage.sh
+touch index.php
+touch backup/index.php
+
+if [ -n "$1" ]; then
+  if [ "$1" = "--reset" ]; then
+    echo "$1"
+    read -p "Enter new password: " PASSWORD
+    PASSWORD=$(echo -n "$PASSWORD" | sha256sum | cut -d ' ' -f1)
+    echo "UPDATE ADMINS SET password='$PASSWORD' WHERE ADMINS.type like '%administrator%';" | sqlite3 *.db
+    printf "\nIt's Done!"
+    exit
+  fi
+fi
+
+sed -i '/^#.*config-per-group/ s/^#//' /etc/ocserv/ocserv.conf
+sed -i '/^config-per-user/ s/^#*/#/' /etc/ocserv/ocserv.conf
+sed -i '/^.*config-per-user/ s|=.*$|= /etc/ocserv/group|' /etc/ocserv/ocserv.conf
+sed -i '/^.*config-per-group/ s|=.*$|= /etc/ocserv/group|' /etc/ocserv/ocserv.conf
+
+cp /etc/sudoers /etc/sudoers.backup
+
+if ! grep -q "www-data ALL=(ALL:ALL) NOPASSWD: ALL" /etc/sudoers; then
+    sudo sed -i '/^root/a\www-data ALL=(ALL:ALL) NOPASSWD: ALL' /etc/sudoers
+fi
+
+DATABASE_NAME="$(uuidgen).db"
+
+sqlite3 $DATABASE_NAME ""
+
+echo ".read schema.sql" | sqlite3 $DATABASE_NAME
+
+printf "\nNow enter detail of administrator of system.\n\n"
+
+read -p "Enter your Fullname: " FULLNAME
+read -p "Enter your Username: " USERNAME
+read -p "Enter your Password: " PASSWORD
+CURRENT_TIME=$(date +"%s")
+PASSWORD=$(echo -n "$PASSWORD" | sha256sum | cut -d ' ' -f1)
+echo "INSERT INTO ADMINS VALUES (null, '$FULLNAME', '$USERNAME', '$PASSWORD', 'administrator', '$CURRENT_TIME');" | sqlite3 $DATABASE_NAME
+
+printf "\n\nWeb Address: <YOUR_VPS_IP>/ocweb.\n"
+printf "\nIf you want reset administrator password just run:\n"
+echo "bash <(curl -s https://raw.githubusercontent.com/miladprg/ocweb/master/install.sh) \"--reset\""
+printf "\n"
+cd ~
+service apache2 restart
+
+chown -R :www-data /var/www/html/OCWeb_DATABASE
+chmod -R 775 /var/www/html/OCWeb_DATABASE
+chown -R :www-data /etc/radcli/
+chmod -R 775 /etc/radcli/
+chown -R :www-data /etc/ocserv/
+chmod -R 775 /etc/ocserv/
+
+sed -i "0,/define(\"DATABASE\",.*/s//define(\"DATABASE\", \"\/var\/www\/html\/OCWeb_DATABASE\/$DATABASE_NAME\");/" /var/www/html/ocweb/assets/utility/functions.php
