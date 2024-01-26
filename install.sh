@@ -72,7 +72,7 @@ if [ ! -e "*.db" ]; then
   chmod -R 775 /etc/ocserv/
 
   sed -i "0,/define(\"DATABASE\",.*/s//define(\"DATABASE\", \"\/var\/www\/html\/OCWeb_DATABASE\/$DATABASE_NAME\");/" /var/www/html/ocweb/assets/utility/functions.php   
-else
+fi
 
 printf "\n\nWeb Address: <YOUR_VPS_IP>/ocweb.\n"
 printf "\nIf you want reset administrator password just run:\n"
