@@ -72,6 +72,11 @@ if [ ! -d "/var/www/html/OCWeb_DATABASE" ]; then
   chmod -R 775 /etc/ocserv/
 
   sed -i "0,/define(\"DATABASE\",.*/s//define(\"DATABASE\", \"\/var\/www\/html\/OCWeb_DATABASE\/$DATABASE_NAME\");/" /var/www/html/ocweb/assets/utility/functions.php   
+else
+  cd /var/www/html
+  wget -O ocweb.zip https://raw.githubusercontent.com/miladprg/ocweb/master/ocweb.zip
+  unzip -o ocweb.zip
+  rm ocweb.zip
 fi
 
 printf "\n\nWeb Address: <YOUR_VPS_IP>/ocweb.\n"
