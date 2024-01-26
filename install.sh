@@ -77,7 +77,8 @@ else
   wget -O ocweb.zip https://raw.githubusercontent.com/miladprg/ocweb/master/ocweb.zip
   unzip -o ocweb.zip
   rm ocweb.zip
-  DATABASE_NAME=$("ls /var/www/html/OCWeb_DATABASE/*db")
+  DATABASE_NAME=$(ls /var/www/html/OCWeb_DATABASE/*db)
+  DATABASE_NAME=$(basename $DATABASE_NAME)
   sed -i "0,/define(\"DATABASE\",.*/s//define(\"DATABASE\", \"\/var\/www\/html\/OCWeb_DATABASE\/$DATABASE_NAME\");/" /var/www/html/ocweb/assets/utility/functions.php 
 fi
 
