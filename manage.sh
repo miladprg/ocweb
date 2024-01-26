@@ -39,12 +39,8 @@ flush_groups() {
   rm -rf /etc/ocserv/group
 }
 
-show_online_users() {
-  occtl show users
-}
-
 disconnect_user() {
-  occtl disconnect user $1
+  sudo occtl disconnect user $1
 }
 
 $@
