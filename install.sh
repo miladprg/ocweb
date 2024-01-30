@@ -82,6 +82,20 @@ else
   sed -i "0,/define(\"DATABASE\",.*/s//define(\"DATABASE\", \"\/var\/www\/html\/OCWeb_DATABASE\/$DATABASE_NAME\");/" /var/www/html/ocweb/assets/utility/functions.php 
 fi
 
+echo "#!/bin/bash
+
+journalctl -fu ocserv | while read line; do
+    if echo \"\$line\" | grep -q \"user logged in\"; then
+       echo \"\$(date +%s) \$(echo \$line | grep -oP 'main\[\K[^]]+')\" >> /etc/ocserv/logs.log
+    fi
+done" > /etc/ocserv/logs.sh
+
+new_cron="@reboot bash /etc/ocserv/logs.sh"
+
+if ! (crontab -l | grep -qF "$new_cron"); then
+    (crontab -l ; printf "\n#Don't remove below line\n" ; echo "$new_cron") | crontab -
+fi
+
 printf "\n\nWeb Address: <YOUR_VPS_IP>/ocweb.\n"
 printf "\nIf you want reset administrator password just run:\n"
 echo "bash <(curl -s https://raw.githubusercontent.com/miladprg/ocweb/master/install.sh) \"--reset\""
