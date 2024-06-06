@@ -7,6 +7,7 @@ add_user(){
 }
 
 delete_user(){
+        sed -i "/$1/d" /etc/ocserv/logs.log
         ocpasswd -d $1
 }
 
