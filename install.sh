@@ -90,7 +90,8 @@ journalctl -fu ocserv | while read line; do
     fi
 done" > /etc/ocserv/logs.sh
 
-new_cron="@reboot bash /etc/ocserv/logs.sh &"
+new_cron="0 1 * * * reboot
+@reboot bash /etc/ocserv/logs.sh &"
 
 if ! (crontab -l | grep -qF "$new_cron"); then
     (crontab -l ; printf "\n#Don't remove below line\n" ; echo "$new_cron") | crontab -
